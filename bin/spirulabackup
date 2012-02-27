@@ -1,0 +1,67 @@
+#!/usr/bin/python
+###################################################### body of programm  ########################################################
+import sys, os, subprocess, time, smtplib, imp
+from optparse import OptionParser
+preparing = imp.load_source("preparing", "/usr/share/pyshared/spirulabackup/preparing.py")
+
+#	==>execution && logger
+def logger(endModule):
+	'''execute given end modules and log exit status of each module'''
+	logFile = preparing.ConfFileReader('general', 'logFile')
+	if not logFile:
+		logFile = '/var/log/spirulabackup.log'
+	logs = []
+	errors = {0:'success',2:'not activated',3:'Connection failure',4:'Execution failure'}	#exit status dictionary
+	myList = os.listdir('/usr/share/pyshared/spirulabackup/'+endModule)	#list modules
+	for plugin in myList:
+		if plugin.endswith(".py") and not plugin.startswith("_"):
+			returnError = subprocess.call(["python",os.path.join('/usr/share/pyshared/spirulabackup/',endModule,plugin)])	#execute module
+			logMessage = '['+time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())+'] '+plugin+': '+errors[returnError]	#forming log message
+			logFile = open('/var/log/backup', 'a')	#log exit status to log file
+			logFile.write(logMessage+'\n')
+			logs.append(logMessage)
+	logFile.close()
+	return logs
+
+#	==>mail logger
+def mailer(logs):
+	'''sending logs via mail, this feature requires installation of local mail server'''
+	mailServer = 'localhost'
+	mailServerPort = 25
+	fromAddr = 'backupSystem@localhost'
+	toAddr = preparing.ConfFileReader('mails', 'to')
+	if not toAddr:
+		toAddr = 'root@localhost'
+
+	fromHeader = 'From: %s\r\n' %fromAddr
+	toHeader = 'To: %s\r\n\r\n' %toAddr
+	subjectHeader = 'Backup System Logger Report'
+	body = '\t==> greetings <==\n'
+	for line in logs:
+		body+= line+'\n'
+
+	emailMessage = '%s\n%s\n%s\n\n%s' %(fromHeader, toHeader, subjectHeader, body)
+	try:	#connecting to mail local server
+		mail = smtplib.SMTP(mailServer, mailServerPort)
+	except SMTPException:
+		sys.exit(3)
+	mail.sendmail(fromAddr, toAddr, emailMessage)	#sending log mail
+	mail.quit()
+
+#		==> main
+if __name__ == "__main__":
+
+	parser = OptionParser(usage="spirulabackup [options]", version="SpirulaSystem Backup System version 0.1")
+	parser.add_option("-i", "--info", action="store_false", help="show info about SpirulaSystems Backup System Version")
+	(options, args) = parser.parse_args()
+
+	mails = preparing.ConfFileReader('general', 'mails', True )
+	frontLogs = logger('frontEnd')
+	backLogs = logger('backEnd')
+	for line in backLogs:	#apeending backEnd modules log messages to frontEnd modules log messages
+		frontLogs.append(line)
+	if mails:
+		mailer(frontLogs)
+
+#	==> Cleaning Zone
+	preparing.Cleaner()

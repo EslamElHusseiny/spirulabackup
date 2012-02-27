@@ -1,0 +1,12 @@
+#!/usr/bin/python
+
+import imp, commands, sys
+preparing = imp.load_source("preparing", "/usr/share/pyshared/spirulabackup/preparing.py")
+
+backupDaily = preparing.ConfFileReader('general', 'backupDaily', True)
+
+if not backupDaily:
+	sys.exit(0)
+else:
+	commands.getoutput("spirulabackup")
+

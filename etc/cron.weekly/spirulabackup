@@ -1,0 +1,12 @@
+#!/usr/bin/python
+
+import imp, commands, sys
+preparing = imp.load_source("preparing", "/usr/share/pyshared/spirulabackup/preparing.py")
+
+backupWeekly = preparing.ConfFileReader('general', 'backupWeekly', True)
+
+if not backupWeekly:
+	sys.exit(0)
+else:
+	commands.getoutput("spirulabackup")
+

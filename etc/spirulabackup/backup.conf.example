@@ -1,0 +1,57 @@
+[general]
+workingDir = /tmp/backup
+
+## Enable/Disable Frontend plugins:
+#backupDirectories = yes
+#backupMysql = yes
+#backupPostgresql = yes
+
+## Enable / Disable Backend plugins:
+#localFileSystem= yes
+#remoteFileSystem= yes
+#s3= yes //not implemented yet
+
+##keep backup for N days
+retention = X
+
+#logFile = /var/log/spirulabackup.log
+
+## enable / disable mails
+mails = yes
+
+## scheduling backup
+#backupDaily = yes
+#backupWeekly = yes
+
+[mysql]
+dbHost = localhost
+dbUser = mysqlUser
+dbPassword = mysqlPassword
+# write the database names here, you can use one of the following 2 lines only
+databaseList = all
+#databaseList = db1, db2, db3
+
+[postgresql]
+pgHost = localhost
+pgUser = postgres
+pgPassword = postgres
+# write the database names here, you can use one of the following 2 lines only
+pgList = all
+#pgList = db1, db2, db3
+
+
+[directories]
+directoryList = /path/to/directory1 , /path/to/directory2 , /etc
+
+[localFS]
+backupPath = /path/to/backup/directory
+
+[remoteFS]
+remoteHost = XXX.XXX.XXX.XXX
+remoteSSHPort = 22
+remoteUser = user
+remotePasswd = password
+remotePath = /path/to/backup/directory
+
+[mails]
+#to = root@localhost
